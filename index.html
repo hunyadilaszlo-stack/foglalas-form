@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Foglalás</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  /* Küldés gomb stílusa */
+  button[type="submit"] {
+    background-color: #005CFF !important;
+    color: #C7FA00 !important;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button[type="submit"]:hover {
+    background-color: #0041cc !important;
+    color: #d4f832 !important;
+  }
+
+  body {
+    background-color: #fcfcf9;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+  }
+  .gdpr-consent {
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<h2>Foglalás</h2>
+<form id="foglalasForm" method="post" action="#">
+  <label for="foglalasTipusa">Foglalás típusa</label>
+  <select id="foglalasTipusa" name="foglalasTipusa" required>
+    <option value="" disabled selected>Válassz foglalás típust</option>
+    <option value="Skybox">Skybox</option>
+    <option value="Asztal">Asztal</option>
+  </select>
+
+  <label for="nev">Név</label>
+  <input type="text" id="nev" name="nev" placeholder="Teljes név" required />
+
+  <label for="email">Email cím</label>
+  <input type="email" id="email" name="email" placeholder="példa@cím.hu" required />
+
+  <label for="telefon">Telefonszám</label>
+  <input type="tel" id="telefon" name="telefon" placeholder="+36 30 123 4567" required />
+
+  <label for="foglalasDatum">Foglalás dátuma</label>
+  <input type="text" id="foglalasDatum" name="foglalasDatum" placeholder="Válassz dátumot" required />
+
+  <label for="uzenet">Üzenet (opcionális)</label>
+  <textarea id="uzenet" name="uzenet" rows="4" placeholder="Írj ide üzenetet..."></textarea>
+
+  <div class="gdpr-consent">
+    <input type="checkbox" id="gdpr" name="gdpr" required />
+    <label for="gdpr">
+      Elfogadom az
+      <a href="https://www.budapestpark.hu/hu/koripark/pages/adatkezelesi" target="_blank" rel="noopener noreferrer">
+        adatkezelési tájékoztatót
+      </a>
+    </label>
+  </div>
+
+  <button type="submit">Küldés</button>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+  flatpickr("#foglalasDatum", {
+    dateFormat: "Y-m-d",
+    enableTime: false,
+    minDate: "2025-11-28",
+    maxDate: "2026-02-01"
+  });
+</script>
+</body>
+</html>
