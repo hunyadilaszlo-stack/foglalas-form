@@ -1,0 +1,165 @@
+DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Foglalás</title>
+
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
+<style>
+  button[type="submit"], #retryBtn {
+    background-color: #005CFF !important;
+    color: #C7FA00 !important;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+    margin-top: 20px;
+  }
+  button[type="submit"]:hover, #retryBtn:hover {
+    background-color: #0041cc !important;
+    color: #d4f832 !important;
+  }
+  body {
+    background-color: #fcfcf9;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+  }
+  .gdpr-consent {
+    margin-bottom: 20px;
+  }
+  #responseMessage {
+    margin-top: 15px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h2>Foglalás</h2>
+
+<form id="foglalasForm" method="post" action="https://script.google.com/macros/s/AKfycbyAjqQP-caeuFMzaeDD8v8M2HvPSRau75o8e2d4xDKeiaGeooT3WWuiMBMcqasAu2SFMA/exec">
+  <label for="foglalasTipusa">Foglalás típusa</label>
+  <select id="foglalasTipusa" name="foglalasTipusa" required>
+    <option value="" disabled selected>Válassz foglalás típust</option>
+    <option value="Skybox">Skybox</option>
+    <option value="Asztal">Asztal</option>
+  </select>
+
+  <label for="nev">Név</label>
+  <input type="text" id="nev" name="nev" placeholder="Teljes név" required />
+
+  <label for="email">Email cím</label>
+  <input type="email" id="email" name="email" placeholder="pld@acm.hu" required />
+
+  <label for="telefon">Telefonszám</label>
+  <input type="tel" id="telefon" name="telefon" placeholder="36 30 123 4567" required />
+
+  <label for="foglalasDatum">Foglalás dátuma</label>
+  <input type="text" id="foglalasDatum" name="foglalasDatum" placeholder="Válassz dátumot" required readonly />
+
+  <label for="uzenet">Üzenet (opcionális)</label>
+  <textarea id="uzenet" name="uzenet" rows="4" placeholder="Írj ide üzenetet"></textarea>
+
+  <div class="gdpr-consent">
+    <input type="checkbox" id="gdpr" name="gdpr" required />
+    <label for="gdpr">
+      Elfogadom az <a href="https://www.budapestpark.hu/hukoripark/pages/adatkezelesi" target="_blank" rel="noopener noreferrer">adatkezelési tájékoztatót</a>.
+    </label>
+  </div>
+
+  <div id="responseMessage"></div>
+  <button id="submitBtn" type="submit">Küldés</button>
+</form>
+
+<!-- Flatpickr JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#foglalasDatum", {
+      dateFormat: "Y-m-d",
+      enableTime: false,
+      minDate: "2025-11-28",
+      maxDate: "2026-02-01",
+      clickOpens: true
+    });
+
+    const form = document.getElementById('foglalasForm');
+    const messageDiv = document.getElementById('responseMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors'
+        });
+        if (!response.ok) throw new Error('Hálózati hiba');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          messageDiv.style.color = 'green';
+          messageDiv.textContent = 'A foglalás beküldése sikeres. Hamarosan keresni fogjuk a megadott elérhetőségeket.';
+          form.reset();
+          const retryBtn = document.getElementById('retryBtn');
+          if (retryBtn) retryBtn.remove();
+          submitBtn.style.display = 'inline-block';
+        } else {
+          throw new Error('Szerver oldali hiba');
+        }
+      } catch (error) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = 'A beküldés nem sikerült.';
+        submitBtn.style.display = 'none';
+        if (!document.getElementById('retryBtn')) {
+          const retryBtn = document.createElement('button');
+          retryBtn.id = 'retryBtn';
+          retryBtn.textContent = 'Újra beküldöm';
+          retryBtn.style.backgroundColor = '#005CFF';
+          retryBtn.style.color = '#C7FA00';
+          retryBtn.style.padding = '12px 24px';
+          retryBtn.style.border = 'none';
+          retryBtn.style.cursor = 'pointer';
+          retryBtn.style.marginTop = '20px';
+          retryBtn.style.fontSize = '1rem';
+          retryBtn.style.borderRadius = '6px';
+          retryBtn.style.display = 'inline-block';
+          retryBtn.addEventListener('click', () => {
+            window.location.href = 'https://teszt.budapestpark.hu/hu/koripark/pages/foglalas';
+          });
+          messageDiv.appendChild(document.createElement('br'));
+          messageDiv.appendChild(retryBtn);
+        }
+        console.error('Beküldési hiba:', error);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
