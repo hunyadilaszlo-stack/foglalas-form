@@ -22,6 +22,22 @@
     color: #d4f832 !important;
   }
 
+  /* Az újra beküldés gomb stílusa a JS-ből ide áthozva (hogy megmaradjon a hover effekt is) */
+  .retry-button {
+    background-color: #005CFF !important;
+    color: #C7FA00 !important;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .retry-button:hover {
+    background-color: #0041cc !important;
+    color: #d4f832 !important;
+  }
+
   body {
     background-color: #fcfcf9;
     font-family: Arial, sans-serif;
@@ -45,11 +61,21 @@
   .gdpr-consent {
     margin-bottom: 20px;
   }
+  /* Új stílus a válasz üzenethez */
+  #responseMessage {
+    padding: 20px;
+    border: 1px solid #005CFF;
+    background-color: #e6f0ff;
+    border-radius: 8px;
+    text-align: center;
+    display: none; /* Alapértelmezetten rejtve van */
+  }
 </style>
 </head>
 <body>
 <h2>Foglalás</h2>
-<form id="foglalasForm" method="post" action="https://script.google.com/macros/s/AKfycbyAjqQP-caeuFMzaeDD8v8M2HvPSRau75o8e2d4xDKeiaGeooT3WWuiMBMcqasAu2SFMA/exec">
+
+<form id="foglalasForm">
   <label for="foglalasTipusa">Foglalás típusa</label>
   <select id="foglalasTipusa" name="foglalasTipusa" required>
     <option value="" disabled selected>Válassz foglalás típust</option>
@@ -85,13 +111,73 @@
   <button type="submit">Küldés</button>
 </form>
 
+<div id="responseMessage" role="alert"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+  // A Google Apps Script URL-je, amit a JS fog használni
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbyAjqQP-caeuFMzaeDD8v8M2HvPSRau75o8e2d4xDKeiaGeooT3WWuiMBMcqasAu2SFMA/exec'; 
+
+  // Az újra beküldés gomb HTML-je a stílusokkal (a CSS osztályt használja)
+  const retryButtonHTML = `
+    <button onclick="window.location.href='https://teszt.budapestpark.hu/hu/koripark/pages/foglalas'"
+            class="retry-button">
+      Újra beküldöm
+    </button>
+  `;
+
+  // 1. Dátumválasztó beállítása
   flatpickr("#foglalasDatum", {
     dateFormat: "Y-m-d",
     enableTime: false,
     minDate: "2025-11-28",
     maxDate: "2026-02-01"
+  });
+
+  // 2. Űrlap beküldés kezelése
+  const form = document.getElementById('foglalasForm');
+  const responseMessage = document.getElementById('responseMessage');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault(); 
+
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Előkészítés
+    submitButton.disabled = true;
+    submitButton.textContent = 'Küldés...';
+    responseMessage.style.display = 'none';
+
+    // Fetch API a beküldéshez
+    fetch(scriptURL, { method: 'POST', body: formData })
+      .then(response => response.json())
+      .then(data => {
+        // Sikeres JSON válasz {"status":"success"}
+        if (data.status === 'success') {
+          // --- SIKERES BEKÜLDÉS ---
+          form.style.display = 'none'; 
+          responseMessage.innerHTML = '<h2>A foglalás beküldése sikeres.</h2><p>Hamarosan keresni fogjuk a megadott elérhetőségeken.</p>';
+        } else {
+          // --- SIKERTELEN BEKÜLDÉS (Szerver oldali hiba) ---
+          form.style.display = 'none';
+          responseMessage.innerHTML = `<h2>A beküldés nem sikerült.</h2><p>Kérjük töltse ki a formot újra.</p>${retryButtonHTML}`;
+        }
+      })
+      .catch(error => {
+        // --- HÁLÓZATI VAGY EGYÉB Hiba ---
+        console.error('Hiba:', error);
+        form.style.display = 'none';
+        responseMessage.innerHTML = `<h2>A beküldés nem sikerült.</h2><p>Hálózati hiba lépett fel. Kérjük töltse ki a formot újra.</p>${retryButtonHTML}`;
+      })
+      .finally(() => {
+        // A válasz megjelenítése
+        responseMessage.style.display = 'block';
+        
+        // Visszaállítja a gombot (ha esetleg látszik)
+        submitButton.disabled = false;
+        submitButton.textContent = 'Küldés';
+      });
   });
 </script>
 </body>
